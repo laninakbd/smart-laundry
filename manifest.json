@@ -1,0 +1,17 @@
+{
+  "name": "Smart Laundry · כביסה חכמה",
+  "short_name": "Laundry AI",
+  "description": "AI-powered laundry care symbol detector",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f0eb",
+  "theme_color": "#2d4a3e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%232d4a3e'/><text y='130' x='96' text-anchor='middle' font-size='110'>🧺</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

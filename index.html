@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#f7f4ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Laundry AI">
+<title>Smart Laundry</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--burg:#8D2645;--burg-l:#b8436a;--burg-p:#f5e8ed;--olive:#D5D08C;--olive-d:#a8a45a;--cream:#f7f4ec;--text:#2a1520;--muted:#9a7a84;--border:#e8dde2;--r:18px;--sh:0 4px 24px rgba(141,38,69,.10);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Heebo',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;padding:0 0 60px;position:relative;overflow-x:hidden;}
+
+/* ORCHID BG - fixed, behind everything */
+.orchid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.orchid{position:absolute;opacity:.22;filter:saturate(.8);}
+.orchid-tr{width:280px;top:-30px;right:-50px;transform:rotate(-35deg);transform-origin:top right;}
+.orchid-bl{width:300px;bottom:-40px;left:-60px;transform:rotate(140deg);transform-origin:bottom left;}
+
+.wrap{position:relative;z-index:1;}
+
+/* HERO */
+.hero{padding:44px 24px 22px;text-align:center;}
+.hero-ico{font-size:2.8rem;display:block;margin-bottom:8px;animation:bop 3s ease-in-out infinite;}
+@keyframes bop{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:2.2rem;color:var(--burg);letter-spacing:-.02em;}
+.hero-sub{font-family:'Nunito',sans-serif;font-weight:800;font-size:1.05rem;color:var(--olive-d);margin-top:4px;}
+.hero-tag{display:none;}
+
+/* CARD */
+.card{background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-radius:var(--r);border:1px solid rgba(141,38,69,.09);margin:0 16px 14px;padding:20px;box-shadow:var(--sh);}
+.clbl{font-family:'Nunito',sans-serif;font-weight:800;font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--burg);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.clbl::before{content:'';width:6px;height:6px;background:var(--burg);border-radius:50%;display:block;}
+
+/* UPLOAD */
+.upload-counter{font-family:'Nunito',sans-serif;font-weight:700;font-size:.75rem;color:var(--muted);text-align:center;margin-bottom:10px;}
+.upload-counter span{color:var(--burg);font-weight:900;}
+
+.upload-main-slot{aspect-ratio:4/3;border:2px dashed var(--border);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;background:rgba(255,255,255,.6);position:relative;overflow:hidden;margin-bottom:10px;}
+.upload-main-slot:hover{border-color:var(--burg);background:var(--burg-p);}
+.upload-main-slot.has-img{border-style:solid;border-color:var(--burg);}
+.upload-main-slot img{width:100%;height:100%;object-fit:cover;border-radius:12px;}
+.slot-rm{position:absolute;top:8px;left:8px;width:26px;height:26px;background:var(--burg);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;cursor:pointer;border:none;font-weight:700;box-shadow:0 2px 8px rgba(141,38,69,.3);}
+.slot-ico{font-size:2rem;opacity:.28;margin-bottom:6px;}
+.slot-txt{font-size:.78rem;color:var(--muted);font-weight:600;}
+.slot-sub{font-size:.63rem;color:var(--border);margin-top:3px;}
+
+/* thumbnail strip under main slot */
+.thumb-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.thumb-item{width:54px;height:54px;border-radius:10px;overflow:hidden;border:2px solid var(--burg);position:relative;flex-shrink:0;cursor:pointer;}
+.thumb-item img{width:100%;height:100%;object-fit:cover;}
+.thumb-item.active-thumb{border-width:3px;box-shadow:0 0 0 2px rgba(141,38,69,.25);}
+.thumb-rm{position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--burg);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;border:none;cursor:pointer;font-weight:700;}
+
+/* add more bar */
+.add-more-bar{width:100%;padding:11px;border:2px dashed var(--border);border-radius:12px;background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;font-family:'Heebo',sans-serif;transition:all .2s;font-weight:500;display:none;}
+.add-more-bar:hover{border-color:var(--burg);color:var(--burg);}
+.add-more-bar.visible{display:block;}
+input[type=file]{display:none;}
+
+/* SLIDER */
+.sldr-ends{display:flex;justify-content:space-between;margin-bottom:8px;}
+.send{font-size:.72rem;color:var(--muted);}
+.send.on{color:var(--burg);font-weight:700;}
+.sldr-row{display:flex;align-items:center;gap:10px;}
+input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:4px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:var(--burg);border-radius:50%;cursor:pointer;box-shadow:0 2px 10px rgba(141,38,69,.4);border:3px solid white;}
+.sval{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.4rem;color:var(--burg);min-width:26px;text-align:center;}
+.sdesc{font-size:.7rem;color:var(--muted);margin-top:7px;font-weight:300;}
+
+/* API KEY */
+.api-w{position:relative;}
+.api-i{width:100%;padding:12px 42px 12px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:'Heebo',sans-serif;font-size:.85rem;background:rgba(255,255,255,.8);color:var(--text);outline:none;transition:border-color .2s;direction:ltr;text-align:left;}
+.api-i:focus{border-color:var(--burg);}
+.api-eye{position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:var(--muted);}
+.api-hint{font-size:.7rem;color:var(--muted);margin-top:6px;}
+.api-hint a{color:var(--burg);text-decoration:none;font-weight:500;}
+
+/* ANALYZE BTN */
+.abtn{display:flex;align-items:center;justify-content:center;gap:10px;width:calc(100% - 32px);margin:6px 16px 14px;padding:17px;background:var(--burg);color:white;border:none;border-radius:var(--r);font-family:'Nunito',sans-serif;font-weight:900;font-size:1.05rem;cursor:pointer;transition:all .25s;box-shadow:0 6px 24px rgba(141,38,69,.35);}
+.abtn:hover{background:#6e1c35;transform:translateY(-2px);box-shadow:0 10px 32px rgba(141,38,69,.45);}
+.abtn:active{transform:translateY(0);}
+.abtn:disabled{background:#c9a0ac;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* LOADING */
+.ldwrap{padding:36px 24px;text-align:center;display:none;}
+.ldwrap.on{display:block;}
+.petal-loader{width:64px;height:64px;margin:0 auto 16px;position:relative;animation:petalSpin 2s ease-in-out infinite;}
+@keyframes petalSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.petal{position:absolute;width:22px;height:32px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--burg);opacity:.85;transform-origin:50% 100%;}
+.petal:nth-child(1){transform:rotate(0deg) translateY(-16px);animation:petalPulse 1.2s ease-in-out infinite;}
+.petal:nth-child(2){transform:rotate(60deg) translateY(-16px);animation:petalPulse 1.2s ease-in-out .2s infinite;}
+.petal:nth-child(3){transform:rotate(120deg) translateY(-16px);animation:petalPulse 1.2s ease-in-out .4s infinite;}
+.petal:nth-child(4){transform:rotate(180deg) translateY(-16px);animation:petalPulse 1.2s ease-in-out .6s infinite;}
+.petal:nth-child(5){transform:rotate(240deg) translateY(-16px);animation:petalPulse 1.2s ease-in-out .8s infinite;}
+.petal:nth-child(6){transform:rotate(300deg) translateY(-16px);animation:petalPulse 1.2s ease-in-out 1s infinite;}
+@keyframes petalPulse{0%,100%{opacity:.3;transform:rotate(var(--r)) translateY(-16px) scale(.85)}50%{opacity:1;transform:rotate(var(--r)) translateY(-18px) scale(1.05)}}
+.petal:nth-child(1){--r:0deg;}
+.petal:nth-child(2){--r:60deg;}
+.petal:nth-child(3){--r:120deg;}
+.petal:nth-child(4){--r:180deg;}
+.petal:nth-child(5){--r:240deg;}
+.petal:nth-child(6){--r:300deg;}
+.ldsteps{display:flex;justify-content:center;gap:7px;margin-bottom:9px;}
+.ldstep{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s;}
+.ldstep.on{background:var(--burg);}
+.ldtxt{font-size:.83rem;color:var(--muted);}
+
+/* ERROR */
+.errbox{background:#fce8ed;border:1px solid #e8b0bf;border-radius:12px;padding:12px 16px;font-size:.82rem;color:var(--burg);margin:0 16px;display:none;font-weight:500;}
+.errbox.on{display:block;}
+
+/* ── POP-UP OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(42,21,32,.6);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.overlay.on{display:flex;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.popup{background:white;border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding-bottom:36px;animation:slideUp .3s ease;position:relative;}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.popup-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 0;}
+
+/* popup header */
+.popup-hdr{background:var(--burg);padding:20px 52px 16px 20px;position:relative;overflow:hidden;}
+.popup-hdr::after{content:'✦';position:absolute;right:-8px;bottom:-14px;font-size:5rem;color:rgba(255,255,255,.06);line-height:1;}
+.popup-close{position:absolute;top:14px;left:14px;width:32px;height:32px;background:rgba(255,255,255,.18);border:none;border-radius:50%;color:white;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.popup-close:hover{background:rgba(255,255,255,.32);}
+.popup-ai-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.6);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.popup-ai-lbl::before{content:'';width:16px;height:1px;background:rgba(255,255,255,.4);display:inline-block;}
+.popup-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.3rem;color:white;line-height:1.2;margin-bottom:10px;}
+.popup-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:.72rem;color:white;font-weight:600;}
+
+/* popup body */
+.popup-body{padding:18px 20px 0;}
+.popup-exp{font-size:.85rem;line-height:1.8;color:var(--text);margin-bottom:16px;border-right:3px solid var(--burg);padding-right:12px;}
+.popup-params{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;}
+.pp{background:var(--burg-p);border-radius:14px;padding:12px 8px 10px;text-align:center;border:1px solid rgba(141,38,69,.10);position:relative;overflow:hidden;}
+.pp::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--burg);opacity:.35;}
+.pp-ico{font-size:1.3rem;margin-bottom:5px;display:block;}
+.pp-lbl{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;font-weight:700;}
+.pp-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:.88rem;color:var(--burg);}
+
+/* see more btn */
+.see-more-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:transparent;border:2px solid var(--burg);border-radius:14px;color:var(--burg);font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;transition:all .2s;}
+.see-more-btn:hover{background:var(--burg);color:white;}
+.see-more-btn.active{background:var(--burg);color:white;}
+
+/* bbox section inside popup */
+.bbox-section{margin-top:16px;display:none;}
+.bbox-section.on{display:block;}
+.bbox-item{margin-bottom:14px;}
+.bbox-item-lbl{font-family:'Nunito',sans-serif;font-weight:700;font-size:.75rem;color:var(--muted);margin-bottom:6px;}
+.bbox-item canvas{width:100%;border-radius:12px;display:block;border:1px solid var(--border);}
+
+/* LEGEND */
+.lgnd{padding:16px 20px 8px;}
+.lgndlbl{font-family:'Nunito',sans-serif;font-weight:800;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:9px;}
+.lgndgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.lgnditem{font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:5px;}
+.lgnddot{width:5px;height:5px;background:var(--burg);border-radius:50%;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- ORCHID BACKGROUND -->
+<div class="orchid-bg">
+  <img class="orchid orchid-tr" src="orchid1.png" onerror="this.style.display='none'">
+  <img class="orchid orchid-bl" src="orchid2.png" onerror="this.style.display='none'">
+</div>
+
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <span class="hero-ico">🧺</span>
+  <div class="hero-title">Smart Laundry</div>
+  <div class="hero-sub">Do Your Laundry!</div>
+  <div class="hero-tag">כביסה חכמה · AI-powered care labels</div>
+</div>
+
+<!-- UPLOAD -->
+<div class="card">
+  <div class="clbl">Upload Items / העלאת פריטים</div>
+  <div class="upload-counter">
+    <span id="uploadCount">0</span> / <span id="uploadMax">6</span> items in this load
+  </div>
+
+  <!-- main big slot -->
+  <div class="upload-main-slot" id="mainSlot" onclick="clickMain()">
+    <div class="slot-ico">📷</div>
+    <div class="slot-txt">Tap to add item</div>
+    <div class="slot-sub">הוסף פריט לנגלה</div>
+  </div>
+
+  <!-- thumbnail strip — shows after 2nd image -->
+  <div class="thumb-strip" id="thumbStrip"></div>
+
+  <!-- add more bar — shows after first image -->
+  <button class="add-more-bar" id="addMoreBar" onclick="clickAddMore()">+ Add another item / הוסף פריט נוסף</button>
+
+  <input type="file" id="fi" accept="image/*" capture="environment">
+</div>
+
+<!-- SLIDER -->
+<div class="card">
+  <div class="clbl">Care Priority / עדיפות טיפול</div>
+  <div class="sldr-ends">
+    <span class="send" id="lg">🌸 Gentle / עדין</span>
+    <span class="send" id="lf">⚡ Fast / מהיר</span>
+  </div>
+  <div class="sldr-row">
+    <input type="range" id="sldr" min="1" max="5" value="3" oninput="updSldr(this.value)">
+    <div class="sval" id="sv">3</div>
+  </div>
+  <div class="sdesc" id="sd"></div>
+</div>
+
+<!-- API KEY -->
+<div class="card">
+  <div class="clbl">Gemini API Key</div>
+  <div class="api-w">
+    <input type="password" id="apiKey" class="api-i" placeholder="AIza...">
+    <button class="api-eye" onclick="toggleKey()">👁</button>
+  </div>
+  <div class="api-hint">Free key: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a></div>
+</div>
+
+<!-- ANALYZE -->
+<button class="abtn" id="abtn" onclick="analyze()">✨ Analyze Load / נתח נגלה</button>
+
+<!-- ERROR -->
+<div class="errbox" id="err"></div>
+
+<!-- LOADING -->
+<div class="ldwrap" id="ldwrap">
+  <div class="petal-loader">
+    <div class="petal"></div><div class="petal"></div><div class="petal"></div>
+    <div class="petal"></div><div class="petal"></div><div class="petal"></div>
+  </div>
+  <div class="ldsteps">
+    <div class="ldstep on" id="s1"></div>
+    <div class="ldstep" id="s2"></div>
+    <div class="ldstep" id="s3"></div>
+  </div>
+  <div class="ldtxt" id="ldtxt">Detecting symbols...</div>
+</div>
+
+<!-- LEGEND -->
+<div class="lgnd">
+  <div class="lgndlbl">Symbol Legend / מקרא</div>
+  <div class="lgndgrid" id="lgndg"></div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- ── POP-UP ── -->
+<div class="overlay" id="overlay" onclick="closePopupOutside(event)">
+  <div class="popup" id="popup">
+    <div class="popup-handle"></div>
+    <div class="popup-hdr">
+      <button class="popup-close" onclick="closePopup()">✕</button>
+      <div class="popup-ai-lbl">AI Recommendation · המלצת AI</div>
+      <div class="popup-title" id="popTitle"></div>
+      <div class="popup-badge">🧺 Smart Laundry</div>
+    </div>
+    <div class="popup-body">
+      <div class="popup-exp" id="popExp"></div>
+      <div class="popup-params" id="popParams"></div>
+      <button class="see-more-btn" id="seeMoreBtn" onclick="toggleDetails()">
+        <span>🔍</span> View Detection Results
+      </button>
+      <div class="bbox-section" id="bboxSection"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SYM={
+  '30C':{he:'30°C',en:'Wash 30°C'},'40C':{he:'40°C',en:'Wash 40°C'},'60C':{he:'60°C',en:'Wash 60°C'},
+  'DN_bleach':{he:'No Bleach',en:'No Bleach'},'DN_dry_clean':{he:'No Dry Clean',en:'No Dry Clean'},
+  'DN_iron':{he:'No Iron',en:'No Iron'},'DN_tumble_dry':{he:'No Tumble Dry',en:'No Tumble Dry'},
+  'DN_wash':{he:'No Machine Wash',en:'No Machine Wash'},
+  'dry_clean_any_solvent_except_trichloroethylene':{he:'Special Dry Clean',en:'Special Dry Clean'},
+  'dry_flat':{he:'Dry Flat',en:'Dry Flat'},'hand_wash':{he:'Hand Wash',en:'Hand Wash'},
+  'iron_high':{he:'Iron High',en:'Iron High'},'iron_low':{he:'Iron Low',en:'Iron Low'},
+  'iron_medium':{he:'Iron Medium',en:'Iron Medium'},
+  'non_chlorine_bleach':{he:'Non-Chlorine Bleach',en:'Non-Chlorine Bleach'},
+  'tumble_dry_low':{he:'Tumble Dry Low',en:'Tumble Dry Low'},
+  'tumble_dry_medium':{he:'Tumble Dry Medium',en:'Tumble Dry Medium'},
+};
+const SD={
+  1:'Very gentle — for delicate fabrics / עדין מאוד לבדים עדינים',
+  2:'Gentle cycle / תוכנית עדינה',
+  3:'Balanced care / טיפול מאוזן',
+  4:'Normal cycle / תוכנית רגילה',
+  5:'Fast — time-saving / מהיר וחסכוני',
+};
+const MAX_ITEMS=6;
+let slots=[];
+let activeSlotIndex=0; // which slot is shown in main view
+let addingNew=false;
+
+window.onload=()=>{buildLgnd();updSldr(3);};
+
+// ── UPLOAD LOGIC ──
+function clickMain(){
+  if(slots.length===0){
+    addingNew=true;
+    document.getElementById('fi').click();
+  }else{
+    // clicking main shows current active slot — do nothing special
+  }
+}
+
+function clickAddMore(){
+  if(slots.length>=MAX_ITEMS)return;
+  addingNew=true;
+  document.getElementById('fi').click();
+}
+
+document.getElementById('fi').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    slots.push({dataUrl:ev.target.result,detected:[]});
+    activeSlotIndex=slots.length-1;
+    renderUpload();
+  };
+  r.readAsDataURL(f);
+  e.target.value='';addingNew=false;
+};
+
+function removeSlot(i,event){
+  event.stopPropagation();
+  slots.splice(i,1);
+  if(activeSlotIndex>=slots.length)activeSlotIndex=Math.max(0,slots.length-1);
+  renderUpload();
+}
+
+function setActive(i){
+  activeSlotIndex=i;
+  renderUpload();
+}
+
+function renderUpload(){
+  const count=slots.length;
+  document.getElementById('uploadCount').textContent=count;
+  const mainSlot=document.getElementById('mainSlot');
+  const thumbStrip=document.getElementById('thumbStrip');
+  const addMoreBar=document.getElementById('addMoreBar');
+
+  // main slot
+  if(count===0){
+    mainSlot.className='upload-main-slot';
+    mainSlot.innerHTML='<div class="slot-ico">📷</div><div class="slot-txt">Tap to add item</div><div class="slot-sub">הוסף פריט לנגלה</div>';
+    mainSlot.onclick=()=>clickMain();
+  }else{
+    const s=slots[activeSlotIndex]||slots[0];
+    mainSlot.className='upload-main-slot has-img';
+    mainSlot.innerHTML=`<img src="${s.dataUrl}"><button class="slot-rm" onclick="removeSlot(${activeSlotIndex},event)">✕</button>`;
+    mainSlot.onclick=null;
+  }
+
+  // thumb strip — show if >1 item
+  thumbStrip.innerHTML='';
+  if(count>1){
+    slots.forEach((s,i)=>{
+      const d=document.createElement('div');
+      d.className='thumb-item'+(i===activeSlotIndex?' active-thumb':'');
+      d.innerHTML=`<img src="${s.dataUrl}"><button class="thumb-rm" onclick="removeSlot(${i},event)">✕</button>`;
+      d.onclick=(e)=>{if(!e.target.classList.contains('thumb-rm')){setActive(i);}};
+      thumbStrip.appendChild(d);
+    });
+  }
+
+  // add more bar — show if ≥1 item and below max
+  if(count>=1 && count<MAX_ITEMS){
+    addMoreBar.classList.add('visible');
+  }else{
+    addMoreBar.classList.remove('visible');
+  }
+}
+
+// ── SLIDER ──
+function updSldr(v){
+  v=parseInt(v);
+  document.getElementById('sv').textContent=v;
+  document.getElementById('sd').textContent=SD[v];
+  // RTL page: slider thumb moves right→left, so we fill from right
+  const p=((v-1)/4)*100;
+  document.getElementById('sldr').style.background=`linear-gradient(to left,#8D2645 ${p}%,#e8dde2 ${p}%)`;
+  document.getElementById('lg').className='send'+(v<=2?' on':'');
+  document.getElementById('lf').className='send'+(v>=4?' on':'');
+}
+
+function toggleKey(){const i=document.getElementById('apiKey');i.type=i.type==='password'?'text':'password';}
+
+// ── MOCK DETECT ──
+function mockDetect(){
+  const keys=Object.keys(SYM),n=2+Math.floor(Math.random()*4);
+  return [...keys].sort(()=>Math.random()-.5).slice(0,n).map(s=>({
+    symbol:s,confidence:.65+Math.random()*.33,
+    x:Math.random()*.6,y:Math.random()*.6,
+    w:.1+Math.random()*.18,h:.1+Math.random()*.18
+  }));
+}
+
+// ── ANALYZE ──
+async function analyze(){
+  const key=document.getElementById('apiKey').value.trim();
+  const sens=parseInt(document.getElementById('sldr').value);
+  hideErr();
+  if(!slots.length)return showErr('Please upload at least one item / העלי לפחות פריט אחד');
+  if(!key)return showErr('Please enter your Gemini API key');
+  if(!key.startsWith('AIza'))return showErr('Invalid key — must start with AIza');
+  document.getElementById('abtn').disabled=true;
+  showLd(1,'Detecting symbols...');
+  await sleep(800);
+  slots.forEach(s=>{s.detected=mockDetect();});
+  const all={};
+  slots.forEach(s=>s.detected.forEach(d=>{if(!all[d.symbol]||all[d.symbol]<d.confidence)all[d.symbol]=d.confidence;}));
+  showLd(2,'Asking Gemini AI...');
+  try{
+    const sl=Object.entries(all).map(([s,c])=>`${s} (${(c*100).toFixed(0)}%)`).join(', ');
+    const sL=['','very gentle','gentle','balanced','fast','very fast'][sens];
+    const prompt=`You are a laundry expert. Detected symbols: ${sl}. User preference: ${sens}/5 (${sL}).
+Reply ONLY with this JSON:
+{"title":"Short English title","program":"Program name","temperature":"e.g. 30°C","spin":"e.g. 800 rpm","explanation":"2 clear sentences in English explaining the recommendation based on the symbols."}`;
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.2,maxOutputTokens:350}})
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`HTTP ${res.status}`);}
+    const data=await res.json();
+    let raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    raw=raw.replace(/```json|```/g,'').trim();
+    const rec=JSON.parse(raw);
+    showLd(3,'Done!');
+    await sleep(300);
+    hideLd();
+    document.getElementById('abtn').disabled=false;
+    openPopup(rec);
+  }catch(e){
+    hideLd();document.getElementById('abtn').disabled=false;
+    showErr(`Error: ${e.message}`);
+  }
+}
+
+// ── POPUP ──
+let detailsOpen=false;
+
+function openPopup(rec){
+  document.getElementById('popTitle').textContent=rec.title;
+  // Hebrew translation note removed — English only from Gemini, cleaner
+  const expHe=translateExp(rec.explanation);
+  document.getElementById('popExp').innerHTML=
+    `<div style="margin-bottom:10px">${rec.explanation}</div>`+
+    `<div style="font-size:.8rem;color:var(--muted);border-top:1px dashed var(--border);padding-top:10px;margin-top:4px">${expHe}</div>`;
+  document.getElementById('popParams').innerHTML=`
+    <div class="pp"><span class="pp-ico">🫧</span><div class="pp-lbl">Program</div><div class="pp-val">${rec.program}</div></div>
+    <div class="pp"><span class="pp-ico">🌡️</span><div class="pp-lbl">Temp</div><div class="pp-val">${rec.temperature}</div></div>
+    <div class="pp"><span class="pp-ico">💫</span><div class="pp-lbl">Spin</div><div class="pp-val">${rec.spin}</div></div>`;
+  // reset details
+  detailsOpen=false;
+  document.getElementById('bboxSection').classList.remove('on');
+  document.getElementById('seeMoreBtn').classList.remove('active');
+  document.getElementById('seeMoreBtn').innerHTML='<span>🔍</span> View Detection Results';
+  // build bbox canvases (lazy)
+  buildBboxCanvases();
+  document.getElementById('overlay').classList.add('on');
+  document.getElementById('popup').scrollTop=0;
+}
+
+function closePopup(){document.getElementById('overlay').classList.remove('on');}
+function closePopupOutside(e){if(e.target===document.getElementById('overlay'))closePopup();}
+
+function toggleDetails(){
+  detailsOpen=!detailsOpen;
+  document.getElementById('bboxSection').classList.toggle('on',detailsOpen);
+  const btn=document.getElementById('seeMoreBtn');
+  if(detailsOpen){
+    btn.classList.add('active');
+    btn.innerHTML='<span>✕</span> Hide Results';
+    document.getElementById('bboxSection').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }else{
+    btn.classList.remove('active');
+    btn.innerHTML='<span>🔍</span> View Detection Results';
+  }
+}
+
+function buildBboxCanvases(){
+  const section=document.getElementById('bboxSection');
+  section.innerHTML='';
+  slots.forEach((slot,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='bbox-item';
+    wrap.innerHTML=`<div class="bbox-item-lbl">Item ${i+1} / פריט ${i+1}</div>`;
+    const canvas=document.createElement('canvas');
+    wrap.appendChild(canvas);
+    section.appendChild(wrap);
+    const img=new Image();
+    img.onload=()=>{
+      canvas.width=img.width;canvas.height=img.height;
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0);
+      slot.detected.forEach(d=>{
+        const x=d.x*img.width,y=d.y*img.height,w=d.w*img.width,h=d.h*img.height;
+        ctx.strokeStyle='#8D2645';ctx.lineWidth=Math.max(2,img.width*.006);
+        // rounded rect
+        const rr=6;ctx.beginPath();ctx.moveTo(x+rr,y);ctx.lineTo(x+w-rr,y);ctx.quadraticCurveTo(x+w,y,x+w,y+rr);ctx.lineTo(x+w,y+h-rr);ctx.quadraticCurveTo(x+w,y+h,x+w-rr,y+h);ctx.lineTo(x+rr,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-rr);ctx.lineTo(x,y+rr);ctx.quadraticCurveTo(x,y,x+rr,y);ctx.closePath();ctx.stroke();
+        const lbl=SYM[d.symbol]?.en||d.symbol;
+        const fs=Math.max(11,img.width*.028);
+        ctx.font=`bold ${fs}px Heebo,sans-serif`;
+        const tw=ctx.measureText(lbl).width;
+        ctx.fillStyle='#8D2645';
+        const lx=x,ly=Math.max(fs+8,y);
+        ctx.beginPath();ctx.roundRect(lx,ly-fs-6,tw+12,fs+8,4);ctx.fill();
+        ctx.fillStyle='white';ctx.fillText(lbl,lx+6,ly-4);
+      });
+    };
+    img.src=slot.dataUrl;
+  });
+}
+
+// simple keyword-based Hebrew summary
+function translateExp(eng){
+  const lines=[];
+  if(/gentle|delicate|soft/i.test(eng))lines.push('מומלץ להשתמש בתוכנית עדינה.');
+  if(/30|cold/i.test(eng))lines.push('טמפרטורה נמוכה מגנה על הבד.');
+  if(/40/i.test(eng))lines.push('כביסה ב-40°C מתאימה לרוב הבגדים.');
+  if(/60/i.test(eng))lines.push('ניתן לכבס בטמפרטורה גבוהה.');
+  if(/bleach/i.test(eng))lines.push('הימנע משימוש באקונומיקה.');
+  if(/iron/i.test(eng))lines.push('אין לגהץ פריטים אלו.');
+  if(/tumble|dryer/i.test(eng))lines.push('אין להשתמש במייבש.');
+  if(/hand/i.test(eng))lines.push('כביסת יד בלבד.');
+  if(!lines.length)lines.push('עקוב אחר הסמלים להבטחת טיפול נכון.');
+  return lines.join(' ');
+}
+
+// helpers
+function showLd(step,txt){
+  [1,2,3].forEach(i=>document.getElementById(`s${i}`).className='ldstep'+(i<=step?' on':''));
+  document.getElementById('ldtxt').textContent=txt;
+  document.getElementById('ldwrap').classList.add('on');
+}
+function hideLd(){document.getElementById('ldwrap').classList.remove('on');}
+function showErr(m){const b=document.getElementById('err');b.textContent=m;b.classList.add('on');}
+function hideErr(){document.getElementById('err').classList.remove('on');}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function buildLgnd(){
+  const g=document.getElementById('lgndg');
+  Object.entries(SYM).forEach(([k,v])=>{
+    const d=document.createElement('div');d.className='lgnditem';
+    d.innerHTML=`<div class="lgnddot"></div>${v.en}`;
+    g.appendChild(d);
+  });
+}
+</script>
+</body>
+</html>
