@@ -593,7 +593,7 @@ async function analyze(){
 Reply ONLY with this JSON (no markdown, no extra text):
 {"title":"Short English title","program":"Program name","temperature":"e.g. 30°C","spin":"e.g. 800 rpm","explanation":"2 clear sentences in English explaining the recommendation based on the symbols."}`;
 
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
