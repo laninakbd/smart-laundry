@@ -593,17 +593,17 @@ async function analyze(){
 Reply ONLY with this JSON (no markdown, no extra text):
 {"title":"Short English title","program":"Program name","temperature":"e.g. 30°C","spin":"e.g. 800 rpm","explanation":"2 clear sentences in English explaining the recommendation based on the symbols."}`;
 
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
+    const res=await fetch(`https://https://api.groq.com/openai/v1/chat/completions`,{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Authorization':Bearer ${key}},
       body:JSON.stringify({
-        contents:[{parts:[{text:prompt}]}],
-        generationConfig:{temperature:.2,maxOutputTokens:350}
+        messages:[{role:'user',content:prompt}],
+        model:'llama-3.3-70b-versatile',temperature:0.2,max_tokens:350
       })
     });
     if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`HTTP ${res.status}`);}
     const data=await res.json();
-    let raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    let raw=data.choices?.[0]?.message?.content||'';
     raw=raw.replace(/```json|```/g,'').trim();
     const rec=JSON.parse(raw);
     showLd(3,'Done!');
