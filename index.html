@@ -236,9 +236,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 
 <!-- API KEY -->
 <div class="card">
-  <div class="clbl">Gemini API Key</div>
+  <div class="clbl">Groq API Key</div>
   <div class="api-w">
-    <input type="password" id="apiKey" class="api-i" placeholder="AIza...">
+    <input type="password" id="apiKey" class="api-i" placeholder="gsk_...">
     <button class="api-eye" onclick="toggleKey()">👁</button>
   </div>
   <div class="api-hint">Free key: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a></div>
@@ -563,7 +563,7 @@ async function analyze(){
   const sens=parseInt(document.getElementById('sldr').value);
   hideErr();
   if(!slots.length) return showErr('Please upload at least one item / העלי לפחות פריט אחד');
-  if(!key) return showErr('Please enter your Gemini API key');
+  if(!key) return showErr('Please enter your Groq API Key');
   if(!key.startsWith('AIza')) return showErr('Invalid key — must start with AIza');
 
   document.getElementById('abtn').disabled=true;
@@ -595,7 +595,7 @@ Reply ONLY with this JSON (no markdown, no extra text):
 
     const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
       body:JSON.stringify({
         contents:[{parts:[{text:prompt}]}],
         generationConfig:{temperature:.2,maxOutputTokens:350}
@@ -603,7 +603,7 @@ Reply ONLY with this JSON (no markdown, no extra text):
     });
     if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`HTTP ${res.status}`);}
     const data=await res.json();
-    let raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    let raw=data.choices?.[0]?.message?.content||'';
     raw=raw.replace(/```json|```/g,'').trim();
     const rec=JSON.parse(raw);
     showLd(3,'Done!');
