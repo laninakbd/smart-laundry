@@ -564,7 +564,7 @@ async function analyze(){
   hideErr();
   if(!slots.length) return showErr('Please upload at least one item / העלי לפחות פריט אחד');
   if(!key) return showErr('Please enter your Groq API Key');
-  if(!key.startsWith('AIza')) return showErr('Invalid key — must start with AIza');
+  if(!key.startsWith('gsk_')) return showErr('Invalid key — must start with AIza');
 
   document.getElementById('abtn').disabled=true;
   showLd(1,'Detecting symbols...');
