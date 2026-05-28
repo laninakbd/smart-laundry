@@ -175,14 +175,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   </div>
   <div class="sdesc" id="sd"></div>
 </div>
-<div class="card">
-  <div class="clbl">Groq API Key</div>
-  <div class="api-w">
-    <input type="password" id="apiKey" class="api-i" placeholder="gsk_...">
-    <button class="api-eye" onclick="toggleKey()">👁</button>
-  </div>
-  <div class="api-hint">Free key: <a href="https://console.groq.com" target="_blank">console.groq.com</a></div>
-</div>
+<input type="hidden" id="apiKey" value="gsk_qqbsqUIGhmuFSod-RLzrPWGdyb3FYVc7r-cp9aMq112qHDVumCR-cOh">
 <button class="abtn" id="abtn" onclick="analyze()">✨ Analyze Load / נתח נגלה</button>
 <div class="errbox" id="err"></div>
 <div class="ldwrap" id="ldwrap">
@@ -418,8 +411,7 @@ async function analyze(){
   const sens=parseInt(document.getElementById('sldr').value);
   hideErr();
   if(!slots.length) return showErr('Please upload at least one item / העלי לפחות פריט אחד');
-  if(!key) return showErr('Please enter your Groq API key');
-  if(!key.startsWith('gsk_')) return showErr('Invalid key — must start with gsk_');
+
   document.getElementById('abtn').disabled=true;
   showLd(1,'Detecting symbols...');
   for(const s of slots){s.detected=await detectSymbols(s.dataUrl);}
